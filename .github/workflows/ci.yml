@@ -18,7 +18,7 @@ jobs:
           node-version: lts/*
       - name: Matcher tests
         run: node --test tests/
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.0
       - name: Ruff
         run: |
           uvx ruff check .
