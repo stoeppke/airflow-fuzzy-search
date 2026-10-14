@@ -1,0 +1,14 @@
+# Puts the plugin into an existing Airflow Compose stack without touching it, e.g.:
+#   docker compose -f docker-compose.yml -f ~/github/airflow-fuzzy-search/dev/override-for-existing-stack.yml \
+#     up -d airflow-apiserver
+# Only the API server serves the UI, so only it needs the plugin. Plain `docker compose up` drops it again.
+services:
+  airflow-apiserver:
+    entrypoint:
+      - /usr/bin/dumb-init
+      - --
+      - bash
+      - -c
+      - pip install --no-deps --quiet -e /fuzzy-search && exec /entrypoint api-server
+    volumes:
+      - ${FUZZY_SEARCH_DIR:-${HOME}/github/airflow-fuzzy-search}:/fuzzy-search

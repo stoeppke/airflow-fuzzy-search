@@ -1,0 +1,18 @@
+# Throwaway Airflow with the plugin installed editable and the example DAGs from dev/dags, for
+# trying the plugin out:
+#   docker compose -f dev/compose.yml up -d   →   http://localhost:28080
+# LOAD_EXAMPLES=True adds Airflow's own ~80 example DAGs, to see the search over a larger list.
+# Every visitor is admin (simple auth manager), so this must never listen beyond localhost.
+services:
+  airflow:
+    image: apache/airflow:${AIRFLOW_VERSION:-3.3.2}
+    entrypoint: ["bash", "-c"]
+    command: ["pip install --no-deps --quiet -e /plugin && exec airflow standalone"]
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: ${LOAD_EXAMPLES:-False}
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "True"
+    ports:
+      - "127.0.0.1:28080:8080"
+    volumes:
+      - ..:/plugin
+      - ./dags:/opt/airflow/dags

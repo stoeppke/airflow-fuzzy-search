@@ -1,0 +1,44 @@
+[project]
+name = "airflow-fuzzy-search"
+version = "0.1.0"
+description = "Fuzzy search overlay for the Airflow 3 UI: Cmd/Ctrl+K finds DAGs and tasks by any part of their name."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Philipp Stöppke" }]
+requires-python = ">=3.10"
+dependencies = ["apache-airflow>=3.3.0"]
+keywords = ["airflow", "apache-airflow", "plugin", "search", "fuzzy-search", "command-palette"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Apache Airflow",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: JavaScript",
+]
+
+[project.urls]
+Repository = "https://github.com/stoeppke/airflow-fuzzy-search"
+Issues = "https://github.com/stoeppke/airflow-fuzzy-search/issues"
+
+[project.entry-points."airflow.plugins"]
+fuzzy_search = "airflow_fuzzy_search.plugin:FuzzySearchPlugin"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["ALL"]
+# RUF012: AirflowPlugin's documented idiom is plain list class attributes.
+# CPY001: the licence lives in LICENSE, not in a header per file.
+ignore = ["D", "ANN", "COM812", "ISC001", "RUF012", "CPY001"]
+
+[tool.ruff.lint.per-file-ignores]
+# Example DAGs: a folder of loose files, as Airflow reads them.
+"dev/dags/*" = ["INP001"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/airflow_fuzzy_search"]

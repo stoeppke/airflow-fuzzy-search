@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+      - name: Matcher tests
+        run: node --test tests/
+      - uses: astral-sh/setup-uv@v10
+      - name: Ruff
+        run: |
+          uvx ruff check .
+          uvx ruff format --check .
+      - name: Build the package
+        run: |
+          uv build
+          unzip -l dist/*.whl | grep -q airflow_fuzzy_search/static/search.js
+
+  airflow:
+    # Starts the throwaway Airflow from dev/ and checks that the plugin loads and the example DAGs import.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Start Airflow
+        run: docker compose -f dev/compose.yml up -d
+      - name: Wait for the API server
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://127.0.0.1:28080/api/v2/monitor/health && exit 0
+            sleep 5
+          done
+          exit 1
+      - name: Plugin is registered and serves its script
+        run: |
+          curl -sf http://127.0.0.1:28080/api/v2/plugins | grep -q 'fuzzy-search/search.js'
+          curl -sf -o /dev/null http://127.0.0.1:28080/fuzzy-search/search.js
+      - name: Example DAGs import
+        run: |
+          for i in $(seq 1 30); do
+            total=$(curl -sf http://127.0.0.1:28080/api/v2/dags | jq .total_entries)
+            [ "$total" = 4 ] && break
+            sleep 5
+          done
+          [ "$total" = 4 ]
+          [ "$(curl -sf http://127.0.0.1:28080/api/v2/importErrors | jq .total_entries)" = 0 ]
+      - name: Airflow log
+        if: failure()
+        run: docker compose -f dev/compose.yml logs
