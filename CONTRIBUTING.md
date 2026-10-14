@@ -30,5 +30,5 @@ shows how.
 ## Checks
 
 The continuous integration runs the same checks you can run yourself: the matcher tests with
-`node --test tests/`, Ruff over the Python code, a package build, and a start of the throwaway
-Airflow to see that the plugin loads. A change to the matching should come with a test.
+`node --test "tests/**/*.test.mjs"`, Ruff over the Python code, a package build, and a start of the
+throwaway Airflow to see that the plugin loads. A change to the matching should come with a test.
